@@ -16,9 +16,9 @@ public class Dev_Service {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
-    private int dev_id ;
-    private int admin_id ;
-    private int service_id ;
+    private long dev_id ;
+    private long admin_id ;
+    private long service_id ;
     private Date attribution_data ;
 
 }

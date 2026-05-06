@@ -16,8 +16,8 @@ public class Requirement_Service {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
-    private int requirement_id ;
-    private int service_id ;
+    private long requirement_id ;
+    private long service_id ;
     private Date attribution_data ;
 
 }

@@ -15,7 +15,7 @@ public class Requirement {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
-    private int user_id ;
+    private long user_id ;
     private String title ;
     private String description ;
     private Date creation_data ;

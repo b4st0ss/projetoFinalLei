@@ -2,6 +2,8 @@ package com.example.app.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import java.util.Date;
 
@@ -41,7 +43,12 @@ public class User {
             nullable = false
     )
     private String role ;
+
+    @CreationTimestamp // Adiciona a data automaticamente no INSERT
+    @Column(updatable = false)
     private Date creation_data ;
+
+    @UpdateTimestamp
     private Date lastedit_data ;
     private String contact ;
     private String address ;

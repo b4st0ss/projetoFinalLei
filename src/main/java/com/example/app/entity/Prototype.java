@@ -16,8 +16,8 @@ public class Prototype {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
-    private int user_id ;
-    private int service_id ;
+    private long user_id ;
+    private long service_id ;
     private String title ;
     private String message ;
     private String image ;

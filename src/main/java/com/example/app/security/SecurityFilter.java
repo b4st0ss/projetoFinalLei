@@ -1,5 +1,6 @@
 package com.example.app.security;
 
+import com.auth0.jwt.interfaces.DecodedJWT;
 import com.example.app.entity.User;
 import com.example.app.repository.UserRepository;
 import com.example.app.service.TokenService;
@@ -24,25 +25,24 @@ public class SecurityFilter  extends OncePerRequestFilter {
     @Autowired
     TokenService tokenService;
 
-    @Autowired
-    UserRepository userRepository;
-
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         var token = this.recoverToken(request);
-        var login = tokenService.tokenValidation(token);
 
-        if (login != null){
-            Optional<User> userOptional = userRepository.findByUsername(login);
+        if (token != null){
+            DecodedJWT decodedToken = tokenService.tokenValidation(token);
 
-            if(userOptional.isPresent()){
-                User user = userOptional.get();
+            if (decodedToken != null){
+                Long user_Id = Long.parseLong(decodedToken.getSubject());
+                String role = decodedToken.getClaim("role").asString();
 
-                // @PreAuthorize("hasRole('ADMIN')")
-                String role = user.getRole();
                 if (!role.startsWith("ROLE_")) {
                     role = "ROLE_" + role;
                 }
+
+                User user = new User();
+                user.setId(user_Id);
+                user.setRole(role);
 
                 var authorities = Collections.singletonList(new SimpleGrantedAuthority(role));
                 var authentication = new UsernamePasswordAuthenticationToken(user, null, authorities);

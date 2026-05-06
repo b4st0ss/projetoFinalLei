@@ -9,16 +9,14 @@ import com.example.app.service.TokenService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.Optional;
 
 @RestController
 @RequestMapping("/auth")
 @RequiredArgsConstructor
+@CrossOrigin(origins = "http://localhost:5173")
 public class AuthController {
 
     private final UserRepository userRepository;
@@ -27,13 +25,20 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity login(@RequestBody LoginRequestDTO body){
-        User user = this.userRepository.findByUsername(body.username()).orElseThrow(() -> new RuntimeException("User not found!"));;
+        Optional<User> userOptional = userRepository.findByUsername(body.username());
 
-        if(passwordEncoder.matches(user.getPassword(), body.password())){
+        if(userOptional.isEmpty()){
+            return ResponseEntity.status(404).body("User not found");
+        }
+
+        User user = userOptional.get();
+
+        if(passwordEncoder.matches(body.password(), user.getPassword())){
             String token = this.tokenService.generateToken(user);
             return ResponseEntity.ok(new ResponseDTO(user.getName(), token));
         }
-        return ResponseEntity.badRequest().build();
+
+        return ResponseEntity.status(401).body("Invalid password");
     }
 
     @PostMapping("/register")
@@ -41,7 +46,7 @@ public class AuthController {
         // Optional<User> user = this.userRepository.findByUsername(body.username());
         if (userRepository.findByUsername(body.username()).isPresent() ||
                 userRepository.findByEmail(body.email()).isPresent()) {
-            return ResponseEntity.badRequest().build();
+            return ResponseEntity.badRequest().body("Username or email already exists");
         }
 
         User newUser = new User();
@@ -49,11 +54,11 @@ public class AuthController {
         newUser.setEmail(body.email());
         newUser.setName(body.name());
         newUser.setPassword(passwordEncoder.encode(body.password()));
-        newUser.setRole("client");
+        newUser.setRole("CLIENT");
+        newUser.setStatus(false);
         userRepository.save(newUser);
 
-        String token = tokenService.generateToken(newUser);
-        return ResponseEntity.ok(new ResponseDTO(newUser.getName(), token));
+        return ResponseEntity.ok("Registo feito com sucesso!");
     }
 
 }
