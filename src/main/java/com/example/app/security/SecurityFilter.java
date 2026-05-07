@@ -2,7 +2,6 @@ package com.example.app.security;
 
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.example.app.entity.User;
-import com.example.app.repository.UserRepository;
 import com.example.app.service.TokenService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -17,7 +16,6 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.util.Collections;
-import java.util.Optional;
 
 @Component
 public class SecurityFilter  extends OncePerRequestFilter {
@@ -36,9 +34,7 @@ public class SecurityFilter  extends OncePerRequestFilter {
                 Long user_Id = Long.parseLong(decodedToken.getSubject());
                 String role = decodedToken.getClaim("role").asString();
 
-                if (!role.startsWith("ROLE_")) {
-                    role = "ROLE_" + role;
-                }
+                role = "ROLE_" + role;
 
                 User user = new User();
                 user.setId(user_Id);

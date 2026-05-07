@@ -16,7 +16,7 @@ import java.util.Optional;
 @RestController
 @RequestMapping("/auth")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "http://localhost:5173")
+//@CrossOrigin(origins = "http://localhost:5173")
 public class AuthController {
 
     private final UserRepository userRepository;
@@ -58,7 +58,6 @@ public class AuthController {
         newUser.setStatus(false);
         userRepository.save(newUser);
 
-        return ResponseEntity.ok("Registo feito com sucesso!");
+        return ResponseEntity.ok("Success on creating acc!");
     }
-
 }

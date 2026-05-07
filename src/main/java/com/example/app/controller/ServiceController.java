@@ -14,13 +14,16 @@ import java.util.List;
 @RestController
 @RequestMapping("/service")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "http://localhost:5173")
+//@CrossOrigin(origins = "http://localhost:5173")
 public class ServiceController {
 
     private final ServiceRepository serviceRepository;
 
     @PostMapping("/create")
     public ResponseEntity create(@RequestBody ServiceRequestDTO body, @AuthenticationPrincipal User logged){
+
+        // var authentication = SecurityContextHolder.getContext().getAuthentication();
+        // User user = (User) authentication.getPrincipal();
 
         Service newService = new Service();
         newService.setUser_id(logged.getId());
