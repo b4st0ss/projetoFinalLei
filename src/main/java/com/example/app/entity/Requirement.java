@@ -1,5 +1,6 @@
 package com.example.app.entity;
 
+import com.example.app.entity.status.RequirementStatus;
 import jakarta.persistence.*;
 import lombok.Data;
 import org.hibernate.annotations.CreationTimestamp;
@@ -16,15 +17,35 @@ public class Requirement {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
-    private long user_id ;
+    @ManyToOne
+    @JoinColumn(
+            name = "user_id",
+            nullable = false
+    )
+    private User user;
+
+    @ManyToOne
+    @JoinColumn(
+            name = "project_id",
+            nullable = false
+    )
+    private Project project;
+
     private String title ;
+
+    @Column(
+            columnDefinition = "TEXT"
+    )
     private String description ;
 
     @CreationTimestamp // added on insertion
-    @Column(updatable = false)
-    private Date creation_data ;
+    @Column(
+            name = "creation_data",
+            updatable = false)
+    private Date creationData ;
 
-    private Date lastedit_data ;
-    private Boolean status;
-
+    @Enumerated(
+            EnumType.STRING
+    )
+    private RequirementStatus status;
 }

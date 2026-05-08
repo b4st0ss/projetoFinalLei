@@ -2,6 +2,7 @@ package com.example.app.security;
 
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.example.app.entity.User;
+import com.example.app.entity.status.UserRoles;
 import com.example.app.service.TokenService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -34,13 +35,13 @@ public class SecurityFilter  extends OncePerRequestFilter {
                 Long user_Id = Long.parseLong(decodedToken.getSubject());
                 String role = decodedToken.getClaim("role").asString();
 
-                role = "ROLE_" + role;
+                String sRole = "ROLE_" + role;
+                var authorities = Collections.singletonList(new SimpleGrantedAuthority(sRole));
 
                 User user = new User();
                 user.setId(user_Id);
-                user.setRole(role);
+                user.setRole(UserRoles.valueOf(role.toUpperCase()));
 
-                var authorities = Collections.singletonList(new SimpleGrantedAuthority(role));
                 var authentication = new UsernamePasswordAuthenticationToken(user, null, authorities);
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             }

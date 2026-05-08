@@ -17,14 +17,40 @@ public class Feedback {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
-    private long user_id ;
-    private long service_id ;
-    private String title ;
+    @ManyToOne
+    @JoinColumn(
+            name = "user_id",
+            nullable = false
+    )
+    private User user;
+
+    @ManyToOne
+    @JoinColumn(
+            name = "project_answer_id",
+            nullable = true
+    )
+    private ProjectAnswer projectAnswer;
+
+    @ManyToOne
+    @JoinColumn(
+            name = "requirement_id",
+            nullable = true
+    )
+    private Requirement requirement;
+
+    @Column(
+            columnDefinition = "TEXT",
+            nullable = false
+    )
     private String message ;
 
     @CreationTimestamp // added on insertion
     @Column(updatable = false)
     private Date creation_data ;
-    private String status;
 
+    @Column(
+            name = "is_read",
+            nullable = false
+    )
+    private boolean isRead = false;
 }

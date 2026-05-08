@@ -1,5 +1,6 @@
 package com.example.app.entity;
 
+import com.example.app.entity.status.UserRoles;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -11,8 +12,6 @@ import java.util.Date;
 @Table
 @Entity(name = "users")
 @Data
-@Getter
-@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 public class User {
@@ -24,32 +23,41 @@ public class User {
     private String name ;
 
     @Column(
-            name = "username",
             nullable = false,
             unique = true
     )
     private String username ;
+
+    @Column(
+            nullable = false
+    )
     private String password ;
 
     @Column(
-            name = "email",
             nullable = false,
             unique = true
     )
     private String email ;
 
     @Column(
-            name = "role",
             nullable = false
     )
-    private String role ;
+    @Enumerated(EnumType.STRING)
+    private UserRoles role ;
 
     @CreationTimestamp // added on insertion
-    @Column(updatable = false)
-    private Date creation_data ;
+    @Column(
+            name = "creation_data",
+            updatable = false
+    )
+    private Date creationData ;
 
     @UpdateTimestamp
-    private Date lastedit_data ;
+    @Column(
+            name = "lastedit_data"
+    )
+    private Date lasteditData ;
+
     private String contact ;
     private String address ;
     private Boolean status;

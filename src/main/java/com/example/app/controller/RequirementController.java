@@ -1,37 +1,61 @@
 package com.example.app.controller;
 
-import com.example.app.dto.service.ServiceRequestDTO;
-import com.example.app.entity.Service;
+import com.example.app.dto.project.CreateProjectDTO;
+import com.example.app.dto.requirement.CreateRequirementDTO;
+import com.example.app.dto.requirement.RequirementItemDTO;
+import com.example.app.entity.Project;
+import com.example.app.entity.Requirement;
 import com.example.app.entity.User;
+import com.example.app.entity.status.ProjectStatus;
+import com.example.app.entity.status.RequirementStatus;
+import com.example.app.repository.ProjectRepository;
+import com.example.app.repository.RequirementRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/requirement")
 @RequiredArgsConstructor
-//@CrossOrigin(origins = "http://localhost:5173")
+@CrossOrigin(origins = "http://localhost:5173")
 public class RequirementController {
 
-    @PostMapping("/createSpecial")
-    @PreAuthorize("hasAnyRole('ADMIN', 'DEV')")
-    public ResponseEntity createSpecial(@RequestBody ServiceRequestDTO body, @AuthenticationPrincipal User logged){
+    private final ProjectRepository projectRepository;
+    private final RequirementRepository requirementRepository;
 
-        // var authentication = SecurityContextHolder.getContext().getAuthentication();
-        // User user = (User) authentication.getPrincipal();
+    @PostMapping("/create")
+    @PreAuthorize("hasAnyRole('CLIENT')")
+    public ResponseEntity create(@RequestBody CreateRequirementDTO body, @AuthenticationPrincipal User logged){
 
-        Service newService = new Service();
-        newService.setUser_id(logged.getId());
-        newService.setTitle(body.title());
-        newService.setDescription(body.description());
-        newService.setStatus("STANDBY");
-        serviceRepository.save(newService);
+        Optional<Project> optionalProject = projectRepository.findById(body.projectId());
 
-        return ResponseEntity.ok("Service Created Successfully");
+        if (optionalProject.isEmpty()){ return ResponseEntity.status(404).body("Project Not Found!"); }
+
+        Project project = optionalProject.get();
+
+        if (project.getClient().getId() != logged.getId()) { return ResponseEntity.status(403).body("Don't have permission to access this project");}
+        else if (project.getStatus() == ProjectStatus.UNDER_TECHNICAL_REVIEW || project.getStatus() == ProjectStatus.COMPLETED){
+            return ResponseEntity.status(400).body("This project is already completed or under review");
+        }
+
+        for (RequirementItemDTO requirementDTO : body.requirements()){
+            Requirement requirement = new Requirement();
+            requirement.setTitle(requirementDTO.title());
+            requirement.setDescription(requirementDTO.description());
+            requirement.setProject(project);
+            requirement.setUser(logged);
+            requirement.setStatus(RequirementStatus.PENDING_REVIEW);
+
+            requirementRepository.save(requirement);
+        }
+
+        return ResponseEntity.ok("Requirement Created Successfully");
     }
+
+
+
 }
