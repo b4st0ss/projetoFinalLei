@@ -23,7 +23,7 @@ public class Service {
     private String title ;
     private String description ;
 
-    @CreationTimestamp // Adiciona a data automaticamente no INSERT
+    @CreationTimestamp // added on insertion
     @Column(updatable = false)
     private Date submission_data ;
 

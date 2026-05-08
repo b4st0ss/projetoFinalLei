@@ -2,6 +2,7 @@ package com.example.app.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import org.hibernate.annotations.CreationTimestamp;
 
 import java.util.Date;
 
@@ -18,7 +19,12 @@ public class Requirement {
     private long user_id ;
     private String title ;
     private String description ;
+
+    @CreationTimestamp // added on insertion
+    @Column(updatable = false)
     private Date creation_data ;
+
     private Date lastedit_data ;
+    private Boolean status;
 
 }

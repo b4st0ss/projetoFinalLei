@@ -44,7 +44,7 @@ public class User {
     )
     private String role ;
 
-    @CreationTimestamp // Adiciona a data automaticamente no INSERT
+    @CreationTimestamp // added on insertion
     @Column(updatable = false)
     private Date creation_data ;
 

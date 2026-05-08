@@ -21,7 +21,7 @@ public class Prototype {
     private String title ;
     private String message ;
     private String image ;
-    private Date creation_data ;
+    // private Date creation_data ;
     private String status;
 
 }

@@ -3,6 +3,7 @@ package com.example.app.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import org.hibernate.annotations.CreationTimestamp;
 
 import java.util.Date;
 
@@ -19,6 +20,9 @@ public class Dev_Service {
     private long dev_id ;
     private long admin_id ;
     private long service_id ;
+
+    @CreationTimestamp // added on insertion
+    @Column(updatable = false)
     private Date attribution_data ;
 
 }
