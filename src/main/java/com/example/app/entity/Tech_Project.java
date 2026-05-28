@@ -19,10 +19,10 @@ public class Tech_Project {
 
     @ManyToOne
     @JoinColumn(
-            name = "dev_id",
+            name = "tech_id",
             nullable = false
     )
-    private User dev;
+    private User tech;
 
     @ManyToOne
     @JoinColumn(

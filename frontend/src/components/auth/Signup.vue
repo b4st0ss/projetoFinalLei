@@ -1,6 +1,5 @@
 <script setup>
 import { ref } from 'vue'
-import axios from 'axios'
 
 const username = ref('')
 const password = ref('')
@@ -9,25 +8,48 @@ const email = ref('')
 const error = ref(null)
 const emit = defineEmits(['signup-success', 'close'])
 
-async function signup(){
+async function signup() {
+  if (!username.value || !password.value || !email.value || !name.value) {
+    error.value = 'Cant sign up with no credentials';
+    return;
+  }
+
   try {
-    const response = await axios.post('http://localhost:8080/auth/register', {
-      name: name.value,
-      username: username.value,
-      email: email.value,
-      password: password.value
+    const response = await fetch('http://localhost:8080/auth/register', {
+      method: 'POST',
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        name: name.value,
+        username: username.value,
+        email: email.value,
+        password: password.value
+      })
     })
 
-    console.log(response.data)
+    const output = await response.json();
 
-    // Save user/token
-    localStorage.setItem('user', JSON.stringify(response.data))
+    if (!response.ok) {
+      if (output.message){
+        error.value = "Registration failed";
+      } else {
+        error.value = output.message;
+      }
+      return;
+    }
 
-    emit('signup-success', response.data)
-    emit('close')
+    // If success
+    emit('signup-success', output);
+    emit('close');
+    router.push('/dashboard');
+
   } catch (err) {
-    console.log(err)
-    // error.value = err.response?.data || "Signup failed"
+    if (err.message) {
+      error.value = err.message;
+    } else {
+      error.value = "Registration failed";
+    }
   }
 }
 

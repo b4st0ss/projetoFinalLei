@@ -55,7 +55,7 @@ public class AuthController {
         // Optional<User> user = this.userRepository.findByUsername(body.username());
         if (userRepository.findByUsername(body.username()).isPresent() ||
                 userRepository.findByEmail(body.email()).isPresent()) {
-            return ResponseEntity.badRequest().body("Username or email already exists");
+            return ResponseEntity.badRequest().body(new ResponseDTO("Username or email already exists"));
         }
 
         User newUser = new User();
@@ -67,21 +67,21 @@ public class AuthController {
         newUser.setStatus(false);
         userRepository.save(newUser);
 
-        return ResponseEntity.ok("Success on creating acc!");
+        return ResponseEntity.ok(new ResponseDTO("Success on creating acc!"));
     }
 
-    // Register Admin | Dev
+    // Register Admin | Dev | Client
     @PostMapping("/registerAdmin")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity registerAdmin(@RequestBody RegisterAdminRequestDTO body) {
         // Optional<User> user = this.userRepository.findByUsername(body.username());
         if (userRepository.findByUsername(body.username()).isPresent() ||
                 userRepository.findByEmail(body.email()).isPresent()) {
-            return ResponseEntity.badRequest().body("Username or email already exists");
+            return ResponseEntity.badRequest().body(new ResponseDTO("Username or email already exists"));
         }
 
-        if(!List.of("ADMIN", "TECH_TEAM").contains(body.role())){
-            return ResponseEntity.badRequest().body("Role must be on the list");
+        if(!List.of("ADMIN", "TECH_TEAM", "CLIENT").contains(body.role())){
+            return ResponseEntity.badRequest().body(new ResponseDTO("Role must be on the list"));
         }
 
         User newUser = new User();
@@ -93,6 +93,6 @@ public class AuthController {
         newUser.setStatus(true);
         userRepository.save(newUser);
 
-        return ResponseEntity.ok("Success on creating " + body.role());
+        return ResponseEntity.ok(new ResponseDTO("Success on creating " + body.role()));
     }
 }

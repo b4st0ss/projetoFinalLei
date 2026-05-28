@@ -1,4 +1,4 @@
 package com.example.app.dto.requirement;
 
-public record RequirementItemDTO(String title, String description) {
+public record RequirementItemDTO(Long requirementId, String title, String description, String status) {
 }

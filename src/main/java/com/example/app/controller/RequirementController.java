@@ -3,6 +3,7 @@ package com.example.app.controller;
 import com.example.app.dto.project.CreateProjectDTO;
 import com.example.app.dto.requirement.CreateRequirementDTO;
 import com.example.app.dto.requirement.RequirementItemDTO;
+import com.example.app.dto.response.ResponseDTO;
 import com.example.app.entity.Project;
 import com.example.app.entity.Requirement;
 import com.example.app.entity.User;
@@ -28,18 +29,22 @@ public class RequirementController {
     private final RequirementRepository requirementRepository;
 
     @PostMapping("/create")
-    @PreAuthorize("hasAnyRole('CLIENT')")
+    @PreAuthorize("hasRole('CLIENT')")
     public ResponseEntity create(@RequestBody CreateRequirementDTO body, @AuthenticationPrincipal User logged){
 
         Optional<Project> optionalProject = projectRepository.findById(body.projectId());
 
-        if (optionalProject.isEmpty()){ return ResponseEntity.status(404).body("Project Not Found!"); }
+        if (optionalProject.isEmpty()){
+            return ResponseEntity.status(404).body(new ResponseDTO("Project not found!"));
+        }
 
         Project project = optionalProject.get();
 
-        if (project.getClient().getId() != logged.getId()) { return ResponseEntity.status(403).body("Don't have permission to access this project");}
+        if (project.getClient().getId() != logged.getId()) {
+            return ResponseEntity.status(403).body(new ResponseDTO("Don't have permission to access this project"));
+        }
         else if (project.getStatus() == ProjectStatus.UNDER_TECHNICAL_REVIEW || project.getStatus() == ProjectStatus.COMPLETED){
-            return ResponseEntity.status(400).body("This project is already completed or under review");
+            return ResponseEntity.status(400).body(new ResponseDTO("This project is already completed or under review"));
         }
 
         for (RequirementItemDTO requirementDTO : body.requirements()){
@@ -53,7 +58,7 @@ public class RequirementController {
             requirementRepository.save(requirement);
         }
 
-        return ResponseEntity.ok("Requirement Created Successfully");
+        return ResponseEntity.ok( new ResponseDTO("Requirement Created Successfully"));
     }
 
 

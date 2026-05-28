@@ -23,7 +23,7 @@ const loggedUser = ref(null)
       <Signup v-if="showSignupModal" v-on:close="showSignupModal = false" @signup-success="loggedUser = $event"/>
     </nav>
 
-    <div class="hidden md:block absolute left-8 md:left-24 top-[20%] font-mono text-xs md:text-sm text-gray-200 z-10">
+    <div class="md:block absolute left-8 md:left-24 top-[20%] font-mono text-xs md:text-sm text-gray-200 z-10">
       &lt;body&gt; <br>
       &nbsp;&nbsp;&lt;div style="color: #FFFFFF; font-size: 20px;"&gt; <br><br>
       &nbsp;&nbsp;&nbsp;&nbsp;<b>System Status: <a class="text-amber-300"> In Progess</a> </b>   &lt;br&gt;<br><br>
@@ -31,7 +31,7 @@ const loggedUser = ref(null)
       &lt;/body&gt;
     </div>
 
-    <div class="hidden md:block absolute top-[20%] right-[7%] font-mono md:text-sm rotate-15 w-1/4 blur-[1px]">
+    <div class="md:block absolute top-[20%] right-[7%] font-mono md:text-sm rotate-15 w-1/4 blur-[1px]">
       <img src="../assets/desk.jpg" alt="pc photo" class="w-full h-auto rounded-lg shadow-lg">
     </div>
 
