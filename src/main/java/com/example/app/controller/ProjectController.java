@@ -293,7 +293,7 @@ public class ProjectController {
             return ResponseEntity.ok(projectRepository.findByTechProjectId(logged.getId()));
         }
 
-        return ResponseEntity.ok("Projects Not Found");
+        return ResponseEntity.ok(new ResponseDTO("Projects Not Found"));
     }
 
 

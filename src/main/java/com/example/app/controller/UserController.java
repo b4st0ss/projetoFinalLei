@@ -109,7 +109,7 @@ public class UserController {
 
 
     @GetMapping("/profile")
-    public ResponseEntity<?> getUser(@AuthenticationPrincipal User logged){
+    public ResponseEntity getUser(@AuthenticationPrincipal User logged){
         Optional<User> optionalUser = userRepository.findById(logged.getId());
         return ResponseEntity.ok(optionalUser.get());
     }

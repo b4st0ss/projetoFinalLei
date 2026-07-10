@@ -39,7 +39,6 @@ async function login() {
       return;
     }
 
-
     // If success
     localStorage.setItem('user', JSON.stringify(output));
     emit('login-success', output);
