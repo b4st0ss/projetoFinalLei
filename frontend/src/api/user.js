@@ -16,8 +16,8 @@ export const userApi = {
     },
     updateProfile(field, newInfo) {
         const body = {
-            field,
-            newInfo
+            info: field,
+            newInfo: newInfo
         };
         return request('/user/update', 'PUT', null, body);
     },
