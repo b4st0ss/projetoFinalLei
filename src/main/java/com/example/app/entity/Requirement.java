@@ -48,4 +48,11 @@ public class Requirement {
             EnumType.STRING
     )
     private RequirementStatus status;
+
+    @ManyToOne
+    @JoinColumn(name = "category_id", nullable = true)
+    private Category category;
+
+    @Column(name = "position_order")
+    private int position;
 }

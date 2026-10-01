@@ -1,111 +1,163 @@
 <script setup>
-import { useRouter } from 'vue-router'
 import { ref } from 'vue'
-import { successNotification } from "../alerts/notifications.js";
+import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
+import { projectApi } from '../../api/project.js'
+import { successNotification } from "../alerts/notifications.js"
+
+const router = useRouter()
+const { t } = useI18n()
 
 const title = ref('')
 const description = ref('')
 const email = ref('')
-const error = ref(null)
-const emit = defineEmits(['close'])
-const router = useRouter()
 
-const props = defineProps({
-  user: { type: Object, required: true }
-})
+const error = ref(null)
+const loading = ref(false)
 
 async function create() {
+  error.value = null;
+
   if (!title.value || !description.value || !email.value) {
-    error.value = 'Must specify all fields';
+    error.value = t('create_project.err_empty_fields');
     return;
   }
 
-  try{
-    const response = await fetch('http://localhost:8080/project/create', {
-      method: 'POST',
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${props.user.token}`
-      },
-      body: JSON.stringify({
-        title: title.value,
-        description: description.value,
-        email: email.value
-      })
-    })
+  loading.value = true;
 
-    const output = await response.json();
+  try {
+    const output = await projectApi.create(title.value, description.value, email.value);
 
-    if (!response.ok) {
-      if (output.message){
-        error.value = output.message;
-      } else {
-        error.value = "Failed to create Project";
-      }
-      return;
-    }
-
-    // If success
-    successNotification(output.message)
-    emit('close')
+    successNotification(output.message || t('create_project.msg_success'))
     router.push({ path: '/dashboard/dashboard-main' })
 
-  } catch (err) {
-
-    if (err.message) {
-      error.value = err.message;
-    } else {
-      error.value = "Error creating project";
-    }
+  } catch (e) {
+    error.value = e.message || 'Falha ao criar o projeto.';
+  } finally {
+    loading.value = false;
   }
 }
-
 </script>
 
 <template>
-  <div class="flex-1 h-full flex flex-col gap-4 pl-4">
-    <div class="text-white bg-neutral-800 w-full h-full rounded-2xl flex flex-col gap-5 p-5">
-      <div class="flex justify-center">
-        <div class="font-normal w-full bg-">
-          Create Project
-        </div>
+  <!-- Mantém o max-w-7xl que iguala o DashboardMain e Perfil -->
+  <div class="flex flex-col gap-6 w-full max-w-7xl mx-auto">
 
-        <button v-on:click="router.push('dashboard-main')" class="cursor-pointer">
-          <!-- https://heroicons.com/ -->
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+    <!-- Header / Voltar -->
+    <div class="flex items-center justify-between bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+      <div class="flex items-center gap-4">
+        <button
+            @click="router.push('/dashboard/dashboard-main')"
+            class="p-2 -ml-2 rounded-lg text-slate-400 hover:text-blue-800 hover:bg-blue-50 transition-colors"
+            :title="$t('create_project.back_tooltip')"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
           </svg>
         </button>
-      </div>
 
-      <div class="font-normal w-full h-full  rounded-2xl gap-6">
-        <div class="text-sm gap-2.5">
-          <div class="p-2 text-white/90">Client Info</div>
-          <input v-model="email" placeholder="Email" class="w-full mb-2 p-2 border bg-neutral-800 text-white/50 rounded-xl" />
-          <div class="p-2 text-white/90">Project Info</div>
-          <input v-model="title" placeholder="Title" class="w-full mb-2 p-2 border bg-neutral-800 text-white/50 rounded-xl" />
-          <input v-model="description" placeholder="Description" class="w-full mb-2 p-2 border bg-neutral-800 text-white/50 rounded-xl" />
-        </div>
-
-        <div v-if="error" class="flex items-center gap-2 bg-red-950 border border-red-400 rounded-xl p-2 mb-4 text-xs text-red-400">
-          <!-- https://heroicons.com/outline -->
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
-          </svg>
-
-          {{ error }}
-        </div>
-
-        <div class="flex justify-center w-full">
-          <button v-on:click="create" class="text-white w-3/10 p-3 rounded-xl justify-center flex text-xs font-normal transition-colors border hover:bg-white hover:text-black duration-300 hover:cursor-pointer">
-            Submit
-          </button>
+        <div>
+          <h2 class="text-xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
+            {{ $t('create_project.title') }}
+          </h2>
+          <p class="text-sm text-slate-500 mt-1">
+            {{ $t('create_project.subtitle') }}
+          </p>
         </div>
       </div>
     </div>
+
+    <!-- Formulário: Removido o max-w-4xl para o fundo branco ocupar tudo -->
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-8">
+
+      <form @submit.prevent="create" class="space-y-8">
+
+        <!-- Secção: Informação do Cliente -->
+        <div>
+          <h3 class="text-sm font-bold text-slate-900 mb-4 pb-2 border-b border-slate-100">
+            {{ $t('create_project.client_info') }}
+          </h3>
+
+          <div class="max-w-md">
+            <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
+              {{ $t('create_project.email_label') }}
+            </label>
+            <input
+                v-model="email"
+                type="email"
+                :placeholder="$t('create_project.email_placeholder')"
+                required
+                class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 placeholder-slate-400 transition-colors focus:border-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-700/20"
+            />
+          </div>
+        </div>
+
+        <!-- Secção: Detalhes do Projeto -->
+        <div>
+          <h3 class="text-sm font-bold text-slate-900 mb-4 pb-2 border-b border-slate-100">
+            {{ $t('create_project.project_info') }}
+          </h3>
+
+          <!-- Limite interno (max-w-3xl) para que as caixas de texto não estiquem infinitamente -->
+          <div class="grid grid-cols-1 gap-6 max-w-3xl">
+            <!-- Título -->
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
+                {{ $t('create_project.project_title_label') }}
+              </label>
+              <input
+                  v-model="title"
+                  type="text"
+                  :placeholder="$t('create_project.project_title_placeholder')"
+                  required
+                  class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 placeholder-slate-400 transition-colors focus:border-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-700/20"
+              />
+            </div>
+
+            <!-- Descrição (Textarea) -->
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
+                {{ $t('create_project.project_desc_label') }}
+              </label>
+              <textarea
+                  v-model="description"
+                  :placeholder="$t('create_project.project_desc_placeholder')"
+                  required
+                  rows="4"
+                  class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 placeholder-slate-400 transition-colors focus:border-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-700/20 resize-y"
+              ></textarea>
+            </div>
+          </div>
+        </div>
+
+        <!-- Alertas de Erro -->
+        <div v-if="error" class="p-3 mt-4 rounded-lg bg-red-50 border border-red-200 text-sm text-red-700 font-medium flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+            {{ error }}
+          </div>
+          <button type="button" @click="error = null" class="text-red-500 hover:text-red-700 font-bold">&times;</button>
+        </div>
+
+
+
+        <div class="pt-6 border-t border-slate-100 flex justify-center">
+          <button
+              type="submit"
+              :disabled="loading"
+              class="bg-blue-800 text-white font-semibold px-6 py-2.5 rounded-lg flex items-center gap-2 hover:bg-blue-700 active:scale-[0.98] transition-all shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <svg v-if="loading" class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+            </svg>
+            {{ loading ? $t('create_project.btn_submitting') : $t('create_project.btn_submit') }}
+          </button>
+        </div>
+
+      </form>
+    </div>
   </div>
 </template>
-
-<style scoped>
-
-</style>

@@ -1,66 +1,119 @@
 <script setup>
 import { ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import Login from './auth/Login.vue'
-import Signup from "./auth/Signup.vue";
+import Signup from './auth/Signup.vue'
 
-const showLoginModal = ref(false)
-const showSignupModal = ref(false)
-const loggedUser = ref(null)
+const { locale } = useI18n()
+
+const showLogin = ref(false)
+const showSignup = ref(false)
+
+function openSignup() {
+  showLogin.value = false
+  showSignup.value = true
+}
+
+function openLogin() {
+  showSignup.value = false
+  showLogin.value = true
+}
+
+// Small function to change language
+function toggleLanguage() {
+  locale.value = locale.value === 'pt' ? 'en' : 'pt'
+}
 </script>
 
-
 <template>
-  <div class="min-h-screen w-full flex flex-col bg-gradient-to-br from-neutral-900 via-neutral-800 to-neutral-700 text-gray-200 font-sans relative overflow-hidden">
-    <nav class="flex justify-between items-center p-6 md:p-8 uppercase text-sm tracking-widest fixed top-0 left-0 w-full z-50">
-      <div class="font-titulo z-50 relative">Getter</div>
+  <div class="flex flex-col min-h-screen w-full bg-slate-50 text-slate-900 font-sans antialiased selection:bg-blue-200">
 
-      <div class="md:flex gap-8">
-        <a href="#" v-on:click="showLoginModal = true" class="hover:text-white font-mono">Login</a>
-        <a href="#" v-on:click="showSignupModal = true" class="hover:text-white font-mono font-bold">Sign In</a>
+    <!-- Navbar -->
+    <header class="sticky top-0 z-40 border-b border-slate-200 bg-white/80 backdrop-blur-md">
+      <div class="mx-auto flex max-w-6xl items-center justify-between px-6 py-4 md:px-10">
+        <div class="flex items-center gap-3 select-none">
+          <span class="text-lg font-bold tracking-tight text-slate-900">Getter</span>
+        </div>
+
+        <nav class="flex items-center gap-3">
+          <!-- Test button to change -->
+          <button
+              @click="toggleLanguage"
+              class="text-xs font-bold text-slate-400 hover:text-blue-800 uppercase px-2"
+          >
+            {{ locale }}
+          </button>
+
+          <button
+              type="button"
+              class="text-sm font-semibold text-slate-600 transition-colors hover:text-slate-900 px-2 py-2"
+              @click="openSignup"
+          >
+            {{ $t('auth.register') }}
+          </button>
+          <button
+              type="button"
+              class="rounded-lg bg-blue-800 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-all hover:bg-blue-700 active:scale-[0.98]"
+              @click="openLogin"
+          >
+            {{ $t('auth.login_btn') }}
+          </button>
+        </nav>
       </div>
+    </header>
 
-      <Login v-if="showLoginModal" v-on:close="showLoginModal = false" @login-success="loggedUser = $event"/>
-      <Signup v-if="showSignupModal" v-on:close="showSignupModal = false" @signup-success="loggedUser = $event"/>
-    </nav>
+    <main class="flex-1 w-full mx-auto max-w-6xl px-6 md:px-10">
+      <!-- Hero Section -->
+      <section class="grid items-center gap-12 py-20 md:grid-cols-2 md:py-28">
+        <div>
+          <h1 class="text-4xl font-extrabold leading-[1.1] tracking-tight text-slate-900 sm:text-5xl md:text-6xl text-balance">
+            {{ $t('home.title') }}
+            <br />
+            <span class="text-blue-800">{{ $t('home.title_highlight') }}</span>
+          </h1>
 
-    <div class="md:block absolute left-8 md:left-24 top-[20%] font-mono text-xs md:text-sm text-gray-200 z-10">
-      &lt;body&gt; <br>
-      &nbsp;&nbsp;&lt;div style="color: #FFFFFF; font-size: 20px;"&gt; <br><br>
-      &nbsp;&nbsp;&nbsp;&nbsp;<b>System Status: <a class="text-amber-300"> In Progess</a> </b>   &lt;br&gt;<br><br>
-      &nbsp;&nbsp;&lt;/div&gt; <br>
-      &lt;/body&gt;
-    </div>
+          <p class="mt-6 max-w-md text-lg leading-relaxed text-slate-600 text-balance">
+            {{ $t('home.subtitle') }}
+          </p>
+        </div>
 
-    <div class="md:block absolute top-[20%] right-[7%] font-mono md:text-sm rotate-15 w-1/4 blur-[1px]">
-      <img src="../assets/desk.jpg" alt="pc photo" class="w-full h-auto rounded-lg shadow-lg">
-    </div>
+        <!-- Hero Image -->
+        <div class="rounded-2xl border border-slate-200 bg-white p-2 shadow-xl shadow-slate-200/50">
+          <img
+              src="../assets/desk.jpg"
+              alt="Estação de trabalho com computador"
+              class="aspect-[4/3] w-full rounded-xl object-cover bg-slate-100"
+          />
+        </div>
+      </section>
+    </main>
 
-    <div class="flex-grow flex items-center justify-center text-center px-6 pt-20 pb-20">
+    <!-- Footer agora empurrado para o fundo pelo flex-1 do main -->
+    <footer class="border-t border-slate-200 bg-white mt-auto">
+      <div class="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 px-6 py-8 text-sm text-slate-500 sm:flex-row md:px-10">
+        <span class="font-medium">&copy; {{ new Date().getFullYear() }}</span>
 
-      <h1 class="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tighter mb-4 text-white z-10 text-shadow-[0_35px_35px_rgb(0_0_0_/_0.25)]">
-        LET'S TALK ABOUT YOUR PROJECT
-      </h1>
+        <span class="hidden font-semibold uppercase tracking-wider text-slate-400 sm:block text-xs">
+          We define. You submit. Tech team builds.
+        </span>
 
-    </div>
-
-    <footer class="flex justify-between items-center p-6 md:p-8 uppercase tracking-widest fixed bottom-0 left-0 w-full">
-
-      <div class="text-xs md:text-sm font-mono">@2026</div>
-      <div class="text-xs md:text-sm font-bold font-mono hidden md:block">We Define. You Submit. Tech Team Build.</div>
-      <div class="text-xs md:text-sm font-mono text-right">diogorbbastos@gmail.com</div>
-
+        <a href="mailto:diogorbbastos@gmail.com" class="font-medium transition-colors hover:text-blue-800">
+          diogorbbastos@gmail.com
+        </a>
+      </div>
     </footer>
+
+    <!-- Modais -->
+    <Login
+        v-if="showLogin"
+        @close="showLogin = false"
+        @switch-to-signup="openSignup"
+    />
+
+    <Signup
+        v-if="showSignup"
+        @close="showSignup = false"
+        @switch-to-login="openLogin"
+    />
   </div>
 </template>
-
-
-
-<style>
-body {
-  font-family: sans-serif;
-  width: 100%;
-  height: 100%;
-  margin: 0;
-  padding: 0;
-}
-</style>

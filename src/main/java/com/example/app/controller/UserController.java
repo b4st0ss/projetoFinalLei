@@ -2,6 +2,7 @@ package com.example.app.controller;
 
 import com.example.app.dto.auth.UpdateUserDTO;
 import com.example.app.dto.auth.UserActivationDTO;
+import com.example.app.dto.auth.UserItemDTO;
 import com.example.app.dto.auth.UserListDTO;
 import com.example.app.dto.response.ResponseDTO;
 import com.example.app.entity.User;
@@ -114,6 +115,23 @@ public class UserController {
         return ResponseEntity.ok(optionalUser.get());
     }
 
+
+    // Adiciona este import no topo se não existir:
+    // import com.example.app.dto.auth.UserItemDTO;
+
+    @GetMapping("/techs/active")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity getActiveTechs() {
+        // Vai buscar apenas os utilizadores ativos e que pertencem à Tech Team
+        List<User> techs = userRepository.findByStatusTrueAndRole(UserRoles.TECH_TEAM);
+        List<UserItemDTO> dtoList = new ArrayList<>();
+
+        for (User tech : techs) {
+            dtoList.add(new UserItemDTO(tech.getId(), tech.getName(), tech.getEmail()));
+        }
+
+        return ResponseEntity.ok(dtoList);
+    }
 
 //    @GetMapping
 //    public List<User> list() {

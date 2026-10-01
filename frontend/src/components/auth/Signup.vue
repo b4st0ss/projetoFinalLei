@@ -1,87 +1,45 @@
 <script setup>
-import { ref } from 'vue'
 
-const username = ref('')
-const password = ref('')
-const name = ref('')
-const email = ref('')
-const error = ref(null)
-const emit = defineEmits(['signup-success', 'close'])
-
-async function signup() {
-  if (!username.value || !password.value || !email.value || !name.value) {
-    error.value = 'Cant sign up with no credentials';
-    return;
-  }
-
-  try {
-    const response = await fetch('http://localhost:8080/auth/register', {
-      method: 'POST',
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        name: name.value,
-        username: username.value,
-        email: email.value,
-        password: password.value
-      })
-    })
-
-    const output = await response.json();
-
-    if (!response.ok) {
-      if (output.message){
-        error.value = "Registration failed";
-      } else {
-        error.value = output.message;
-      }
-      return;
-    }
-
-    // If success
-    emit('signup-success', output);
-    emit('close');
-    router.push('/dashboard');
-
-  } catch (err) {
-    if (err.message) {
-      error.value = err.message;
-    } else {
-      error.value = "Registration failed";
-    }
-  }
-}
+const emit = defineEmits(['close', 'switch-to-login'])
 
 </script>
 
 <template>
-  <div v-on:click.self="$emit('close')" class="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
-    <div class="bg-neutral-900 text-black p-6 rounded-lg w-80 border">
+  <div @click.self="$emit('close')" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-xs p-4">
+    <div
+        class="w-full max-w-md rounded-2xl bg-white p-8 shadow-xl shadow-slate-200/50 border border-slate-200"
+        @click.stop
+    >
 
-      <div class="flex align-middle justify-center">
-        <h2 class="text-white font-titulo text-xl mb-4">Sign In</h2>
+      <div class="text-center mb-6">
+        <div class="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-xl bg-orange-50 border border-orange-100 text-orange-600">
+          <svg class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          </svg>
+        </div>
+        <h2 class="text-2xl font-bold text-slate-900 tracking-tight">
+          {{ $t('auth.signup_unavailable_title') }}
+        </h2>
+        <p class="text-sm text-slate-500 mt-2 leading-relaxed">
+          {{ $t('auth.signup_unavailable_desc') }}
+        </p>
       </div>
 
-      <div v-if="error" class="flex items-center gap-2 bg-red-950 border border-red-400 rounded-xl p-2 mb-4 text-xs text-red-400">
-        <!-- https://heroicons.com/outline -->
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
-        </svg>
+      <div class="mt-8 space-y-3">
+        <button
+            type="button"
+            @click="$emit('switch-to-login')"
+            class="w-full flex items-center justify-center rounded-lg bg-blue-800 py-2.5 px-4 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 active:scale-[0.99] transition-all"
+        >
+          {{ $t('auth.already_have_account') }}
+        </button>
 
-        {{ error }}
-      </div>
-
-      <div class="pb-4">
-        <input v-model="name" placeholder="Name" class="w-full mb-2 p-2 border bg-neutral-800 text-white rounded-xl" />
-        <input v-model="username" placeholder="Username" class="w-full mb-2 p-2 border bg-neutral-800 text-white rounded-xl" />
-        <input v-model="email" placeholder="Email" class="w-full mb-2 p-2 border bg-neutral-800 text-white rounded-xl" />
-        <input v-model="password" type="password" placeholder="Password" class="w-full mb-2 p-2 border bg-neutral-800 text-white rounded-xl" />
-      </div>
-
-      <div class="flex justify-center w-full">
-        <button v-on:click="signup" class="text-white w-1/2 p-3 rounded-xl justify-center flex text-xs font-normal transition-colors border hover:bg-white hover:text-black duration-300 hover:cursor-pointer">
-          Register
+        <button
+            type="button"
+            @click="$emit('close')"
+            class="w-full flex items-center justify-center rounded-lg border border-slate-300 bg-white py-2.5 px-4 text-sm font-semibold text-slate-700 hover:bg-slate-50 hover:border-slate-400 active:scale-[0.99] transition-all"
+        >
+          {{ $t('auth.back_to_home') }}
         </button>
       </div>
     </div>

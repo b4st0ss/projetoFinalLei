@@ -1,84 +1,107 @@
 <script setup>
-import { ref, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
-import { RouterView } from 'vue-router'
+import { computed } from 'vue'
+import { useRouter, RouterView } from 'vue-router'
+import { useStore } from 'vuex'
 
 const router = useRouter()
+const store = useStore()
 
-// To check user login
-const auth = localStorage.getItem('user')
-if (!auth) router.push("/")
-const user = ref(JSON.parse(auth))
+const user = computed(() => store.getters['auth/currentUser'])
 
-function logout(){
-  localStorage.removeItem('user')
+function logout() {
+  store.dispatch('auth/logout')
   router.push('/')
 }
 </script>
 
 <template>
-  <div class="bg-neutral-900 w-screen h-screen flex p-4">
+  <div class="bg-slate-50 w-full min-h-screen flex text-slate-900 font-sans antialiased">
+    <aside class="w-64 bg-white border-r border-slate-200 flex flex-col justify-between shadow-sm z-10">
+      <div class="flex flex-col gap-8 p-6">
+        <h1 class="text-blue-800 font-extrabold text-2xl tracking-tight select-none">
+          Getter
+        </h1>
 
-    <div class="bg-neutral-800 w-1/4 h-full rounded-2xl p-6 flex flex-col justify-between">
+        <nav class="flex flex-col gap-1.5 font-semibold text-sm">
+          <RouterLink
+              to="/dashboard/dashboard-main"
+              class="px-3 py-2.5 rounded-lg text-slate-600 hover:text-blue-800 hover:bg-slate-50 transition-colors"
+              active-class="bg-blue-50 text-blue-800"
+          >
+            {{ $t('sidebar.dashboard') }}
+          </RouterLink>
 
-      <div class="flex flex-col gap-10">
-        <h1 class="text-white font-titulo text-xl w-full">GETTER</h1>
+          <RouterLink
+              to="/dashboard/list-projects"
+              class="px-3 py-2.5 rounded-lg text-slate-600 hover:text-blue-800 hover:bg-slate-50 transition-colors"
+              active-class="bg-blue-50 text-blue-800"
+          >
+            {{ $t('sidebar.projects') }}
+          </RouterLink>
 
-        <div class="flex flex-col gap-4 font-normal text-zinc-400 text-sm tracking-wider">
-          <RouterLink to="/dashboard/dashboard-main" class="hover:text-white transition-colors">Dashboard</RouterLink>
-          <RouterLink to="/dashboard/create-project" class="hover:text-white transition-colors">Projects</RouterLink>
-          <RouterLink to="/dashboard/activate-users" href="#" v-if="user.role === 'ADMIN'" class="hover:text-white transition-colors">Activate Users</RouterLink>
-        </div>
+          <RouterLink
+              v-if="user?.role === 'ADMIN'"
+              to="/dashboard/activate-users"
+              class="px-3 py-2.5 rounded-lg text-slate-600 hover:text-blue-800 hover:bg-slate-50 transition-colors"
+              active-class="bg-blue-50 text-blue-800"
+          >
+            {{ $t('sidebar.activate_users') }}
+          </RouterLink>
+
+          <RouterLink
+              v-if="user?.role === 'ADMIN'"
+              to="/dashboard/create-users"
+              class="px-3 py-2.5 rounded-lg text-slate-600 hover:text-blue-800 hover:bg-slate-50 transition-colors"
+              active-class="bg-blue-50 text-blue-800"
+          >
+            {{ $t('sidebar.create_users') }}
+          </RouterLink>
+
+          <RouterLink
+              v-if="user?.role === 'ADMIN'"
+              to="/dashboard/manage-questions"
+              class="px-3 py-2.5 rounded-lg text-slate-600 hover:text-blue-800 hover:bg-slate-50 transition-colors"
+              active-class="bg-blue-50 text-blue-800"
+          >
+            {{ $t('sidebar.manage_questions') }}
+          </RouterLink>
+        </nav>
       </div>
 
-
-      <div class="flex flex-col gap-6">
-        <div class="flex flex-col gap-2 font-normal text-zinc-500 text-xs tracking-wide pl-1">
-          <a href="#" class="hover:text-white transition-colors">Support</a>
-          <a href="#" class="hover:text-white transition-colors">Terms & Conditions</a>
+      <div class="p-6 flex flex-col gap-4 border-t border-slate-100">
+        <div class="flex flex-col gap-2 font-medium text-slate-400 text-xs px-3">
+          <a href="#" class="hover:text-slate-700 transition-colors">{{ $t('sidebar.support') }}</a>
+          <a href="#" class="hover:text-slate-700 transition-colors">{{ $t('sidebar.terms') }}</a>
         </div>
 
-        <div class="flex w-full gap-2">
-          <button v-on:click="router.push('/dashboard/profile')" class="text-white w-full p-4 rounded-xl flex items-center justify-between text-xs font-normal transition-colors border hover:bg-neutral-900 duration-300 hover:cursor-pointer">
-            <div class="flex items-center gap-3">
-
-              <!-- https://heroicons.com/ -->
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M17.982 18.725A7.488 7.488 0 0 0 12 15.75a7.488 7.488 0 0 0-5.982 2.975m11.963 0a9 9 0 1 0-11.963 0m11.963 0A8.966 8.966 0 0 1 12 21a8.966 8.966 0 0 1-5.982-2.275M15 9.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
-              </svg>
-
-              My Profile
-
+        <div class="flex gap-2 w-full mt-2">
+          <button
+              @click="router.push('/dashboard/profile')"
+              class="flex-1 flex items-center justify-between px-3 py-2.5 bg-white border border-slate-200 rounded-lg text-slate-700 hover:border-slate-300 hover:bg-slate-50 transition-colors group"
+          >
+            <div class="flex items-center gap-2">
+              <div class="w-6 h-6 rounded-full bg-blue-100 text-blue-800 flex items-center justify-center font-bold text-xs">
+                {{ user?.name?.charAt(0).toUpperCase() || 'U' }}
+              </div>
+              <span class="text-xs font-bold truncate max-w-[80px]">{{ user?.name || $t('sidebar.profile') }}</span>
             </div>
-
-            <!-- https://heroicons.com/ -->
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
-              <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
-            </svg>
           </button>
 
-          <button v-on:click="logout" class="text-white p-4 rounded-xl transition-colors border hover:bg-red-600 duration-300 hover:cursor-pointer">
-            <!-- https://heroicons.com/ -->
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 9V5.25A2.25 2.25 0 0 1 10.5 3h6a2.25 2.25 0 0 1 2.25 2.25v13.5A2.25 2.25 0 0 1 16.5 21h-6a2.25 2.25 0 0 1-2.25-2.25V15m-3 0-3-3m0 0 3-3m-3 3H15" />
+          <button
+              @click="logout"
+              class="flex items-center justify-center px-3 py-2.5 bg-white border border-slate-200 rounded-lg text-slate-500 hover:text-red-600 hover:border-red-200 hover:bg-red-50 transition-colors"
+              :title="$t('sidebar.logout_tooltip')"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9" />
             </svg>
           </button>
         </div>
       </div>
-    </div>
+    </aside>
 
-    <RouterView :user="user" />
-
+    <main class="flex-1 h-screen overflow-y-auto p-8">
+      <RouterView :user="user" />
+    </main>
   </div>
 </template>
-
-<style>
-body {
-  width: 100%;
-  height: 100%;
-  margin: 0;
-  padding: 0;
-}
-
-
-</style>

@@ -1,204 +1,223 @@
 <script setup>
-import { ref, onMounted } from 'vue'
-import ErrorAlert from "../alerts/ErrorAlert.vue";
-import SuccessAlert from "../alerts/SuccessAlert.vue";
+import { ref, onMounted, computed } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { projectApi } from "../../api/project.js"
+import { userApi } from "../../api/user.js"
 
 const props = defineProps({
   user: { type: Object, required: true },
-  projectId: { type: String, required:true }
+  projectId: { type: String, required: true }
 })
+const emit = defineEmits(['close'])
+const { t } = useI18n()
 
 const error = ref(null)
-const selectedTechs = ref([])
 const successMessage = ref("")
-const techEmail = ref("")
-const emit = defineEmits(['close'])
+const loading = ref(true)
 
+const selectedTechs = ref([])
+const activeTechs = ref([])
+const searchQuery = ref("")
 
-async function fetchAssociated() {
-  try{
-    const response = await fetch(`http://localhost:8080/project/${props.projectId}/getTechs`,{
-      method: 'GET',
-      headers: {
-        "Authorization": `Bearer ${props.user.token}`
-      }
-    })
+// Filtra a pesquisa e separa os técnicos que JÁ ESTÃO associados
+const filteredAssociated = computed(() => {
+  const q = searchQuery.value.toLowerCase()
+  return selectedTechs.value.filter(t =>
+      t.name?.toLowerCase().includes(q) || t.email?.toLowerCase().includes(q)
+  )
+})
 
-    const output = await response.json();
+// Filtra a pesquisa e separa os técnicos que AINDA NÃO estão associados
+const filteredAvailable = computed(() => {
+  const q = searchQuery.value.toLowerCase()
+  return activeTechs.value.filter(t =>
+      !selectedTechs.value.some(selected => selected.id === t.id) &&
+      (t.name?.toLowerCase().includes(q) || t.email?.toLowerCase().includes(q))
+  )
+})
 
-    if (!response.ok) {
-      if (output.message){
-        error.value = output.message;
-      } else {
-        error.value = "Failed to fetch Associated";
-      }
-      return;
-    }
+async function fetchLists() {
+  loading.value = true
+  error.value = null
 
-    selectedTechs.value = output;
+  try {
+    // Pedidos paralelos para ser super rápido!
+    const [associatedOutput, activeOutput] = await Promise.all([
+      projectApi.getTechs(props.projectId),
+      userApi.getActiveTechs()
+    ])
 
-  } catch (err) {
-
-    if (err.message) {
-      error.value = err.message;
-    } else {
-      error.value = "Failed to fetch Associated";
-    }
+    selectedTechs.value = associatedOutput
+    activeTechs.value = activeOutput
+  } catch (e) {
+    error.value = e.message || "Erro ao carregar lista de técnicos."
+  } finally {
+    loading.value = false
   }
 }
 
-async function addTech(){
+async function addTech(techId) {
+  error.value = null
+  successMessage.value = ""
 
-  error.value = null;
-
-  // Check Inputs
-  if (techEmail.value === null){
-    error.value = "Need to Insert The Email!";
-    return;
+  try {
+    const output = await projectApi.associateTech(Number(props.projectId), Number(techId))
+    successMessage.value = output.message
+    await fetchLists() // Atualiza as listas
+  } catch (e) {
+    error.value = e.message
   }
-
-  try{
-    const response = await fetch('http://localhost:8080/project/associateTech', {
-      method: 'POST',
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${props.user.token}`
-      },
-      body: JSON.stringify({
-        projectId: Number(props.projectId),
-        email: techEmail.value
-      })
-    })
-
-    const output = await response.json();
-
-    if (!response.ok) {
-      if (response.message){
-        error.value = "Failed to associate Tech";
-      } else {
-        error.value = response.message;
-      }
-      return;
-    }
-
-    // refesh
-    successMessage.value = output.message;
-    techEmail.value = '';
-    await fetchAssociated();
-
-  } catch (err) {
-
-    if (err.message) {
-      error.value = err.message;
-    } else {
-      error.value = "Failed to associate Tech";
-    }
-
-  }
-
 }
 
+async function removeTech(techId) {
+  error.value = null
+  successMessage.value = ""
 
-async function removeTech(id){
-  error.value = null;
-
-  try{
-    const response = await fetch('http://localhost:8080/project/disassociateTech', {
-      method: 'DELETE',
-      headers: {
-        "Authorization": `Bearer ${props.user.token}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        projectId: Number(props.projectId),
-        techId: Number(id)
-      })
-    })
-
-    const output = await response.json();
-
-    if (!response.ok) {
-      if (output.message){
-        error.value = output.message;
-      } else {
-        error.value = "Failed to remove Tech";
-      }
-      return;
-    }
-
-    successMessage.value = output.message;
-    await fetchAssociated();
-
-  } catch (err) {
-
-    if (err.message) {
-      error.value = err.message;
-    } else {
-      error.value = "Failed to remove Tech";
-    }
+  try {
+    const output = await projectApi.disassociateTech(Number(props.projectId), Number(techId))
+    successMessage.value = output.message
+    await fetchLists() // Atualiza as listas
+  } catch (e) {
+    error.value = e.message
   }
-
 }
 
 onMounted(() => {
-  fetchAssociated();
+  fetchLists()
 })
-
 </script>
 
 <template>
-  <div class="fixed inset-0 flex items-center justify-center bg-neutral-950/70 z-50 combined-blur-sm">
-    <div class="bg-neutral-900 text-black p-6 rounded-lg w-120 border ">
+  <!-- Fundo escuro com desfoque -->
+  <div class="fixed inset-0 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm z-50 p-4">
 
-      <div class="flex items-center justify-between mb-4">
-        <h2 class="text-white font-titulo text-xl mb-4">Associate Tech</h2>
+    <!-- Cartão Modal Branco -->
+    <div class="bg-white text-slate-900 rounded-2xl w-full max-w-lg shadow-2xl flex flex-col max-h-[90vh]">
 
-        <button v-on:click="emit('close')" class="text-neutral-400 hover:text-white cursor-pointer">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+      <!-- Header do Modal -->
+      <div class="p-6 border-b border-slate-100 flex items-start justify-between shrink-0">
+        <div>
+          <h2 class="text-xl font-bold tracking-tight text-slate-900">{{ $t('associate_tech.title') }}</h2>
+          <p class="text-xs text-slate-500 mt-1">{{ $t('associate_tech.subtitle') }}</p>
+        </div>
+
+        <button @click="emit('close')" class="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
           </svg>
         </button>
       </div>
 
-      <ErrorAlert v-if="error" :message="error" />
-      <SuccessAlert v-if="successMessage" :message="successMessage" />
+      <!-- Alertas -->
+      <div v-if="error" class="mx-6 mt-4 p-3 rounded-lg bg-red-50 border border-red-200 text-xs text-red-700 font-medium flex justify-between shrink-0">
+        {{ error }}
+        <button @click="error = null" class="text-red-500 font-bold">&times;</button>
+      </div>
+      <div v-if="successMessage" class="mx-6 mt-4 p-3 rounded-lg bg-green-50 border border-green-200 text-xs text-green-700 font-medium flex justify-between shrink-0">
+        {{ successMessage }}
+        <button @click="successMessage = ''" class="text-green-500 font-bold">&times;</button>
+      </div>
 
-      <!-- https://preline.co/docs/components/custom-scrollbar.html -->
-      <div class="bg-neutral-800 w-full h-40 rounded-2xl mb-4 text-white overflow-y-auto
-          [&::-webkit-scrollbar]:w-2
-          [&::-webkit-scrollbar-track]:rounded-full
-          [&::-webkit-scrollbar-track]:bg-stone-100
-          [&::-webkit-scrollbar-thumb]:rounded-full
-          [&::-webkit-scrollbar-thumb]:bg-stone-300
-          dark:[&::-webkit-scrollbar-track]:bg-neutral-700
-          dark:[&::-webkit-scrollbar-thumb]:bg-neutral-500">
-
-        <div class="p-3 flex flex-col gap-2">
-
-          <div v-for="tech in selectedTechs" :key="tech.id" class="flex items-center justify-between bg-gray-700/70 rounded-2xl">
-              {{tech.name}}
-              {{tech.email}}
-
-            <button v-on:click="removeTech(tech.id)" class="cursor-pointer">
-              <!-- https://heroicons.com/ -->
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
-                <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
-              </svg>
-            </button>
+      <!-- Barra de Pesquisa -->
+      <div class="px-6 py-4 shrink-0">
+        <div class="relative w-full">
+          <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
+            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
           </div>
-
+          <input
+              v-model="searchQuery"
+              type="text"
+              :placeholder="$t('associate_tech.search_placeholder')"
+              class="w-full rounded-lg border border-slate-300 bg-slate-50 py-2 pl-9 pr-4 text-sm text-slate-900 placeholder-slate-400 focus:border-blue-700 focus:outline-none focus:ring-1 focus:ring-blue-700 focus:bg-white transition-colors"
+          />
         </div>
       </div>
 
+      <!-- Loading State -->
+      <div v-if="loading" class="flex-1 p-10 flex flex-col items-center justify-center">
+        <svg class="animate-spin h-8 w-8 text-blue-800 mb-2" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+        </svg>
+      </div>
 
-      <div class="flex flex-box text-white rounded-xl border">
-        <input v-model="techEmail" placeholder="Tech Email" class="w-full p-2 bg-transparent  text-sm outline-none border-none" />
+      <!-- Listas de Técnicos (Scrollable) -->
+      <div v-else class="flex-1 overflow-y-auto px-6 pb-6 custom-scrollbar">
 
-        <button v-on:click="addTech" class="cursor-pointer p-1">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5" />
-          </svg>
-        </button>
+        <!-- Secção: JÁ ASSOCIADOS -->
+        <div class="mb-6">
+          <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 flex items-center justify-between">
+            {{ $t('associate_tech.lbl_associated') }}
+            <span class="bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full text-[10px]">{{ filteredAssociated.length }}</span>
+          </h3>
+
+          <div v-if="filteredAssociated.length === 0" class="text-center py-4 text-xs text-slate-400 italic bg-slate-50 rounded-lg border border-dashed border-slate-200">
+            {{ searchQuery ? $t('associate_tech.no_results') : $t('associate_tech.no_associated') }}
+          </div>
+
+          <div class="flex flex-col gap-2">
+            <div
+                v-for="tech in filteredAssociated"
+                :key="tech.id"
+                class="flex items-center justify-between p-3 bg-white border border-slate-200 rounded-xl shadow-sm hover:border-slate-300 transition-colors"
+            >
+              <div class="flex items-center gap-3">
+                <div class="h-8 w-8 rounded-full bg-blue-50 text-blue-800 flex items-center justify-center font-bold text-xs">
+                  {{ tech.name?.charAt(0).toUpperCase() || 'U' }}
+                </div>
+                <div>
+                  <div class="text-sm font-bold text-slate-900">{{ tech.name }}</div>
+                  <div class="text-xs text-slate-500">{{ tech.email }}</div>
+                </div>
+              </div>
+              <button
+                  @click="removeTech(tech.id)"
+                  class="text-xs font-semibold px-3 py-1.5 text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition-colors"
+              >
+                {{ $t('associate_tech.btn_remove') }}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Secção: DISPONÍVEIS -->
+        <div>
+          <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 flex items-center justify-between">
+            {{ $t('associate_tech.lbl_available') }}
+            <span class="bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full text-[10px]">{{ filteredAvailable.length }}</span>
+          </h3>
+
+          <div v-if="filteredAvailable.length === 0" class="text-center py-4 text-xs text-slate-400 italic bg-slate-50 rounded-lg border border-dashed border-slate-200">
+            {{ searchQuery ? $t('associate_tech.no_results') : $t('associate_tech.no_available') }}
+          </div>
+
+          <div class="flex flex-col gap-2">
+            <div
+                v-for="tech in filteredAvailable"
+                :key="tech.id"
+                class="flex items-center justify-between p-3 bg-slate-50 border border-slate-100 rounded-xl hover:bg-white hover:border-slate-200 hover:shadow-sm transition-all"
+            >
+              <div class="flex items-center gap-3">
+                <div class="h-8 w-8 rounded-full bg-slate-200 text-slate-600 flex items-center justify-center font-bold text-xs">
+                  {{ tech.name?.charAt(0).toUpperCase() || 'U' }}
+                </div>
+                <div>
+                  <div class="text-sm font-bold text-slate-900">{{ tech.name }}</div>
+                  <div class="text-xs text-slate-500">{{ tech.email }}</div>
+                </div>
+              </div>
+              <button
+                  @click="addTech(tech.id)"
+                  class="text-xs font-semibold px-3 py-1.5 text-blue-700 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors border border-blue-100"
+              >
+                {{ $t('associate_tech.btn_add') }}
+              </button>
+            </div>
+          </div>
+        </div>
+
       </div>
     </div>
   </div>
