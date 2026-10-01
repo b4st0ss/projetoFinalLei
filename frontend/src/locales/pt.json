@@ -46,14 +46,16 @@
     "msg_success": "Utilizador criado com sucesso!"
   },
   "sidebar": {
+    "section_main": "Principal",
+    "section_admin": "Administração",
     "dashboard": "Dashboard",
     "projects": "Projetos",
     "activate_users": "Ativar Utilizadores",
     "create_users": "Criar Utilizadores",
     "support": "Suporte",
-    "terms": "Termos & Condições",
+    "terms": "Termos e Condições",
     "profile": "Perfil",
-    "logout_tooltip": "Terminar Sessão",
+    "logout_tooltip": "Terminar sessão",
     "manage_questions": "Gerir Perguntas"
   },
   "dashboard": {

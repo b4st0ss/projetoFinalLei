@@ -43,6 +43,8 @@
     "msg_success": "User successfully created!"
   },
   "sidebar": {
+    "section_main": "Main",
+    "section_admin": "Administration",
     "dashboard": "Dashboard",
     "projects": "Projects",
     "activate_users": "Activate Users",

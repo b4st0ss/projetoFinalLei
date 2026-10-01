@@ -22,49 +22,62 @@ function logout() {
           Getter
         </h1>
 
-        <nav class="flex flex-col gap-1.5 font-semibold text-sm">
-          <RouterLink
-              to="/dashboard/dashboard-main"
-              class="px-3 py-2.5 rounded-lg text-slate-600 hover:text-blue-800 hover:bg-slate-50 transition-colors"
-              active-class="bg-blue-50 text-blue-800"
-          >
-            {{ $t('sidebar.dashboard') }}
-          </RouterLink>
+        <nav class="flex flex-col gap-6 font-semibold text-sm">
 
-          <RouterLink
-              to="/dashboard/list-projects"
-              class="px-3 py-2.5 rounded-lg text-slate-600 hover:text-blue-800 hover:bg-slate-50 transition-colors"
-              active-class="bg-blue-50 text-blue-800"
-          >
-            {{ $t('sidebar.projects') }}
-          </RouterLink>
+          <!-- SECÇÃO 1: Principal / Projetos -->
+          <div class="flex flex-col gap-1.5">
+            <div class="px-3 text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">
+              {{ $t('sidebar.section_main') }}
+            </div>
 
-          <RouterLink
-              v-if="user?.role === 'ADMIN'"
-              to="/dashboard/activate-users"
-              class="px-3 py-2.5 rounded-lg text-slate-600 hover:text-blue-800 hover:bg-slate-50 transition-colors"
-              active-class="bg-blue-50 text-blue-800"
-          >
-            {{ $t('sidebar.activate_users') }}
-          </RouterLink>
+            <RouterLink
+                to="/dashboard/dashboard-main"
+                class="px-3 py-2.5 rounded-lg text-slate-600 hover:text-blue-800 hover:bg-slate-50 transition-colors"
+                active-class="bg-blue-50 text-blue-800"
+            >
+              {{ $t('sidebar.dashboard') }}
+            </RouterLink>
 
-          <RouterLink
-              v-if="user?.role === 'ADMIN'"
-              to="/dashboard/create-users"
-              class="px-3 py-2.5 rounded-lg text-slate-600 hover:text-blue-800 hover:bg-slate-50 transition-colors"
-              active-class="bg-blue-50 text-blue-800"
-          >
-            {{ $t('sidebar.create_users') }}
-          </RouterLink>
+            <RouterLink
+                to="/dashboard/list-projects"
+                class="px-3 py-2.5 rounded-lg text-slate-600 hover:text-blue-800 hover:bg-slate-50 transition-colors"
+                active-class="bg-blue-50 text-blue-800"
+            >
+              {{ $t('sidebar.projects') }}
+            </RouterLink>
+          </div>
 
-          <RouterLink
-              v-if="user?.role === 'ADMIN'"
-              to="/dashboard/manage-questions"
-              class="px-3 py-2.5 rounded-lg text-slate-600 hover:text-blue-800 hover:bg-slate-50 transition-colors"
-              active-class="bg-blue-50 text-blue-800"
-          >
-            {{ $t('sidebar.manage_questions') }}
-          </RouterLink>
+          <!-- SECÇÃO 2: Administração (Apenas ADMIN) -->
+          <div v-if="user?.role === 'ADMIN'" class="flex flex-col gap-1.5">
+            <div class="px-3 text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1 pt-4 border-t border-slate-100">
+              {{ $t('sidebar.section_admin') }}
+            </div>
+
+            <RouterLink
+                to="/dashboard/activate-users"
+                class="px-3 py-2.5 rounded-lg text-slate-600 hover:text-blue-800 hover:bg-slate-50 transition-colors"
+                active-class="bg-blue-50 text-blue-800"
+            >
+              {{ $t('sidebar.activate_users') }}
+            </RouterLink>
+
+            <RouterLink
+                to="/dashboard/create-users"
+                class="px-3 py-2.5 rounded-lg text-slate-600 hover:text-blue-800 hover:bg-slate-50 transition-colors"
+                active-class="bg-blue-50 text-blue-800"
+            >
+              {{ $t('sidebar.create_users') }}
+            </RouterLink>
+
+            <RouterLink
+                to="/dashboard/manage-questions"
+                class="px-3 py-2.5 rounded-lg text-slate-600 hover:text-blue-800 hover:bg-slate-50 transition-colors"
+                active-class="bg-blue-50 text-blue-800"
+            >
+              {{ $t('sidebar.manage_questions') }}
+            </RouterLink>
+          </div>
+
         </nav>
       </div>
 
