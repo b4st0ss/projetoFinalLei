@@ -1,6 +1,6 @@
 # GETTER — Plataforma de Gestão e Levantamento de Requisitos
 
-O **GETTER** é uma aplicação web concebida para simplificar e organizar o processo de engenharia de software, facilitando o levantamento, especificação e gestão colaborativa de requisitos de projetos de software.
+O **GETTER** é uma aplicação web concebida para simplificar e organizar o processo de engenharia de software, facilita assim o levantamento, especificação e gestão colaborativa de requisitos de projetos de software.
 
 Projeto desenvolvido no âmbito do Projeto Final da Licenciatura em Engenharia Informática.
 
